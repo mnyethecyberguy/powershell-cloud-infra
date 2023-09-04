@@ -1,8 +1,12 @@
+# Global variables and functions
 $DEPLOY_FILE = "deploy_config.json"
-$ERRORS_DIR = "$HOME/deploy_errors"
+$ERRORS_DIR = "deploy_errors"
 $COLOR_ERROR = "Red"
 $COLOR_SUCCESS = "Green"
 $COLOR_INFO = "Cyan"
+$SUPPORTED_REGIONS_AWS = "us-east-1", "us-east-2", "us-west-1", "us-west-2"
+$SUPPORTED_REGIONS_AZURE = "eastus", "eastus2", "centralus", "southcentralus", "westus", "westus2", "westus3"
+$SUPPORTED_REGIONS_GCP = "us-east1", "us-east4", "us-east5", "us-central1", "us-south1", "us-west1", "us-west2"
 
 function Get-UniqueStringAws() {
   Get-Content $DEPLOY_FILE | jq -r '.unique_strings.aws'
@@ -75,49 +79,47 @@ function Select-Region() {
     [string] $Provider,
 
     [Parameter(Mandatory)]
-    [string[]] $Regions = @()
+    [string[]] $Regions
   )
-
   
-}
+  $title = 'Select Region'
+  $message = "Select a supported $Provider region:"
+  [System.Management.Automation.Host.ChoiceDescription[]] $options = @()
+  
+  foreach ( $region in $Regions ) {
+    $options += New-Object System.Management.Automation.Host.ChoiceDescription $region
+  }
 
-select_region() {
-    TOTAL_REGIONS=$#
-    PROVIDER=$1
-    shift
+  $options += New-Object System.Management.Automation.Host.ChoiceDescription 'none'
 
-    echo ""
+  $result = $host.ui.PromptForChoice($title, $message, $options, $Regions.length)
+  
+  if ( $result -eq $Regions.length ) {
+    $Selection = 'none'
+  }
+  else {
+    $Selection = $Regions[$result]
+  }
 
-    export PS3="
-Select a supported $PROVIDER region: "
-
-    select SELECTION in "$@" none
-    do
-    if [[ "$SELECTION" ]]
-    then
-        jq --arg region "$SELECTION" --arg provider "$PROVIDER" '.regions[$provider] = $region' "$DEPLOY_FILE" | sudo sponge "$DEPLOY_FILE" > /dev/null
-        break
-    else
-        echo ""
-        echo "Invalid selection. Type a number between 1 and $TOTAL_REGIONS."
-        exit 1
-    fi
-    done
+  (jq --arg region "$Selection" --arg provider "$Provider" '.regions[$provider] = $region' "$DEPLOY_FILE") | Set-Content $DEPLOY_FILE
 }
 
 function Set-RegionAws() {
-  Select-Region aws us-east-1 us-east-2 us-west-1 us-west-2
+  Select-Region -Provider aws -Regions $SUPPORTED_REGIONS_AWS
 }
 
 function Set-RegionAzure() {
-  Select-Region azure eastus eastus2 centralus southcentralus westus westus2 westus3
+  Select-Region -Provider azure -Regions $SUPPORTED_REGIONS_AZURE
 }
 
 function Set-RegionGcp() {
-  Select-Region gcp us-east1 us-east4 us-east5 us-central1 us-south1 us-west1 us-west2
+  Select-Region -Provider gcp -Regions $SUPPORTED_REGIONS_GCP
 }
 
 function Get-WksSshPubKey() {
   Get-Content $WKS_SSH_PUB_KEY
 }
-  
+
+function New-UniqueString() {
+  -join ((48..57) + (97..122) | Get-Random -Count 12 | ForEach-Object {[char]$_})
+}
