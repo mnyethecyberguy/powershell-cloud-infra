@@ -70,13 +70,15 @@ function Test-GcpEnabled() {
 }
 
 function Select-Region() {
-param (
-  [Parameter(Mandatory)]
-  [string]$Provider
-)
+  param (
+    [Parameter(Mandatory)]
+    [string] $Provider,
 
+    [Parameter(Mandatory)]
+    [string[]] $Regions = @()
+  )
 
-
+  
 }
 
 select_region() {
