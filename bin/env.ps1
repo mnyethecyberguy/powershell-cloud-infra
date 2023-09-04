@@ -1,0 +1,5 @@
+$DEPLOY_FILE = "deploy_config.json"
+$ERRORS_DIR = "$HOME/deploy_errors"
+$COLOR_ERROR = "Red"
+$COLOR_SUCCESS = "Green"
+$COLOR_INFO = "Cyan"
