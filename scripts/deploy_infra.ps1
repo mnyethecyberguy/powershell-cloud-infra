@@ -143,10 +143,9 @@ if ( $ADMIN_LOCKED_DOWN -eq "null" ) {
 }
 
 Write-Output ""
-Write-Output "Selected Regions:"
+Write-Host ("**Selected Regions:**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString
+Write-Host ("**AWS: $SELECTED_AWS_REGION**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString -NoNewline
+Write-Host ("**Azure: $SELECTED_AZURE_REGION**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString -NoNewline
+Write-Host ("**GCP: $SELECTED_GCP_REGION**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString -NoNewline
 Write-Output ""
-Write-Output "AWS: $SELECTED_AWS_REGION"
-Write-Output "Azure: $SELECTED_AZURE_REGION"
-Write-Output "GCP: $SELECTED_GCP_REGION"
-Write-Output ""
-Write-Output "Admin services locked down: $ADMIN_LOCKED_DOWN"
+Write-Host ("**Admin services locked down: $ADMIN_LOCKED_DOWN**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString
