@@ -1,0 +1,12 @@
+{
+  "unique_strings": {
+    "aws": "x7s825mrhv0w",
+    "azure": "n6p58mzqdrl1",
+    "gcp": "y6dsoxj5q01t"
+  },
+  "regions": {
+    "aws": "none",
+    "azure": "none",
+    "gcp": "none"
+  }
+}

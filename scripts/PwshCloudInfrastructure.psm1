@@ -1,5 +1,6 @@
 # Global variables and functions
-$DEPLOY_FILE = "deploy_config.json"
+New-Variable -Name DEPLOY_FILE -Value "$PSScriptRoot/deploy_config.json" -Scope Global
+#$DEPLOY_FILE = "$PSScriptRoot/deploy_config.json"
 $ERRORS_DIR = "deploy_errors"
 $COLOR_ERROR = "Red"
 $COLOR_SUCCESS = "Green"
@@ -7,6 +8,25 @@ $COLOR_INFO = "Cyan"
 $SUPPORTED_REGIONS_AWS = "us-east-1", "us-east-2", "us-west-1", "us-west-2"
 $SUPPORTED_REGIONS_AZURE = "eastus", "eastus2", "centralus", "southcentralus", "westus", "westus2", "westus3"
 $SUPPORTED_REGIONS_GCP = "us-east1", "us-east4", "us-east5", "us-central1", "us-south1", "us-west1", "us-west2"
+
+$PwshCloudInfrastructure = [ordered]@{
+  DeployFile            = "$PSScriptRoot/deploy_config.json"
+  ErrorsDir             = "$PSScriptRoot/deploy_errors"
+  ColorError            = "Red"
+  ColorSuccess          = "Green"
+  ColorInfo             = "Cyan"
+  SupportedRegionsAws   = "us-east-1", "us-east-2", "us-west-1", "us-west-2"
+  SupportedRegionsAzure = "eastus", "eastus2", "centralus", "southcentralus", "westus", "westus2", "westus3"
+  SupportedRegionsGcp   = "us-east1", "us-east4", "us-east5", "us-central1", "us-south1", "us-west1", "us-west2"
+}
+
+function Get-SupportedRegionsAws() {
+  $PwshCloudInfrastructure.SupportedRegionsAws
+}
+
+function Get-DeployFilePath() {
+  $DEPLOY_FILE
+}
 
 function Get-UniqueStringAws() {
   Get-Content $DEPLOY_FILE | jq -r '.unique_strings.aws'
