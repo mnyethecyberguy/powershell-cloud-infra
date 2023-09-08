@@ -5,7 +5,7 @@
     "gcp": "y6dsoxj5q01t"
   },
   "regions": {
-    "aws": "none",
+    "aws": "us-east-2",
     "azure": "none",
     "gcp": "none"
   }

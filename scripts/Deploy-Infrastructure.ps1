@@ -1,7 +1,7 @@
 Set-PSDebug -Strict
 
-$ScriptDir = Split-Path -parent $MyInvocation.MyCommand.Path
-Import-Module $ScriptDir\..\modules\pci.psm1
+# $ScriptDir = Split-Path -parent $MyInvocation.MyCommand.Path
+Import-Module "$PSScriptRoot/PwshCloudInfrastructure.psm1" -Force
 
 <# Check if Deploy or Remove scripts already running #>
 if ( (Get-Process -Name pwsh | Where-Object {$_.CommandLine -like "*Deploy-Infrastructure.ps1"} -ne $null ) -or (Get-Process -Name pwsh | Where-Object {$_.CommandLine -like "*Remove-Infrastructure.ps1"} -ne $null ) ) {
@@ -10,152 +10,168 @@ if ( (Get-Process -Name pwsh | Where-Object {$_.CommandLine -like "*Deploy-Infra
 }
 
 <# Check if Deploy file exists, if not then create #>
-if ( -not ( Test-Path -Path $DEPLOY_FILE ) ) {
+$DeployFile = $(Get-DeployFilePath)
+if ( -not ( Test-Path -Path $DeployFile ) ) {
   Write-Host "No Deploy file exists, creating now"
-  Write-Output "{}" | Set-Content $DEPLOY_FILE
+  Write-Output "{}" | Set-Content $DeployFile
 }
 else {
-  Write-Host "Deploy File already exists: $(Get-DeployFilePath)"
+  Write-Host "Deploy File already exists: $DeployFile"
 }
 
-$UNIQUE_STRING_AWS = "$(Get-UniqueStringAws)"
-$UNIQUE_STRING_AZURE = "$(Get-UniqueStringAzure)"
-$UNIQUE_STRING_GCP = "$(Get-UniqueStringGcp)"
-
-if ( $UNIQUE_STRING_AWS -eq "null") {
-  $UNIQUE_STRING = New-UniqueString
-  Write-Host "Generated new AWS identifier: $UNIQUE_STRING"
-  (jq --arg aws "$UNIQUE_STRING" '.unique_strings.aws = $aws' "$DEPLOY_FILE") | Set-Content $DEPLOY_FILE
+<# Check if error log directory exists, if not then create #>
+$ErrorsDir = "$(Get-ErrorsDir)"
+if ( -not ( Test-Path -Path $ErrorsDir ) ) {
+  Write-Host "No error log directory exists, creating now"
+  New-Item -ItemType Directory -Path $ErrorsDir | Out-Null
+}
+else {
+  Write-Host "Error Log directory already exists: $ErrorsDir"
 }
 
-if ( $UNIQUE_STRING_AZURE -eq "null") {
-  $UNIQUE_STRING = New-UniqueString
-  Write-Host "Generated new Azure identifier: $UNIQUE_STRING"
-  (jq --arg azure "$UNIQUE_STRING" '.unique_strings.azure = $azure' "$DEPLOY_FILE") | Set-Content $DEPLOY_FILE
+<# Create error log directory for this run #>
+$CurrentTime = "$(Get-Date -UFormat %s)"
+$TargetDir = "$ErrorsDir/deploy_$CurrentTime"
+New-Item -ItemType Directory -Path $TargetDir | Out-Null
+
+$UniqueStringAws = "$(Get-UniqueStringAws)"
+$UniqueStringAzure = "$(Get-UniqueStringAzure)"
+$UniqueStringGcp = "$(Get-UniqueStringGcp)"
+
+if ( $UniqueStringAws -eq "null") {
+  $UniqueString = New-UniqueString
+  Write-Host "Generated new AWS identifier: $UniqueString"
+  (jq --arg aws "$UniqueString" '.unique_strings.aws = $aws' "$DeployFile") | Set-Content $DeployFile
 }
 
-if ( $UNIQUE_STRING_GCP -eq "null") {
-  $UNIQUE_STRING = New-UniqueString
-  Write-Host "Generated new AWS identifier: $UNIQUE_STRING"
-  (jq --arg gcp "$UNIQUE_STRING" '.unique_strings.gcp = $gcp' "$DEPLOY_FILE") | Set-Content $DEPLOY_FILE
+if ( $UniqueStringAzure -eq "null") {
+  $UniqueString = New-UniqueString
+  Write-Host "Generated new Azure identifier: $UniqueString"
+  (jq --arg azure "$UniqueString" '.unique_strings.azure = $azure' "$DeployFile") | Set-Content $DeployFile
 }
 
-$REGIONS="$(Get-Regions)"
-$SELECTED_AWS_REGION="$(Get-RegionAws)"
-$SELECTED_AZURE_REGION="$(Get-RegionAzure)"
-$SELECTED_GCP_REGION="$(Get-RegionGcp)"
-$NUMBER_REGIONS_ENABLED=0
-
-if ( $SELECTED_AWS_REGION -eq "null" ) {
-  $SELECTED_AWS_REGION = "none"
-  (jq '.regions.aws = "none"' $DEPLOY_FILE) | Set-Content $DEPLOY_FILE
+if ( $UniqueStringGcp -eq "null") {
+  $UniqueString = New-UniqueString
+  Write-Host "Generated new AWS identifier: $UniqueString"
+  (jq --arg gcp "$UniqueString" '.unique_strings.gcp = $gcp' "$DeployFile") | Set-Content $DeployFile
 }
 
-if ( $SELECTED_AZURE_REGION -eq "null" ) {
-  $SELECTED_AZURE_REGION = "none"
-  (jq '.regions.azure = "none"' $DEPLOY_FILE) | Set-Content $DEPLOY_FILE
+$Regions = "$(Get-Regions)"
+$SelectedRegionAws = "$(Get-RegionAws)"
+$SelectedRegionAzure = "$(Get-RegionAzure)"
+$SelectedRegionGcp = "$(Get-RegionGcp)"
+$NumberRegionsEnabled = 0
+
+if ( $SelectedRegionAws -eq "null" ) {
+  $SelectedRegionAws = "none"
+  (jq '.regions.aws = "none"' $DeployFile) | Set-Content $DeployFile
 }
 
-if ( $SELECTED_GCP_REGION -eq "null" ) {
-  $SELECTED_GCP_REGION = "none"
-  (jq '.regions.gcp = "none"' $DEPLOY_FILE) | Set-Content $DEPLOY_FILE
+if ( $SelectedRegionAzure -eq "null" ) {
+  $SelectedRegionAzure = "none"
+  (jq '.regions.azure = "none"' $DeployFile) | Set-Content $DeployFile
 }
 
-if ( $REGIONS -ne "null" ) {
-  if ( $SELECTED_AWS_REGION -ne "none" ) {
-    $NUMBER_REGIONS_ENABLED++
+if ( $SelectedRegionGcp -eq "null" ) {
+  $SelectedRegionGcp = "none"
+  (jq '.regions.gcp = "none"' $DeployFile) | Set-Content $DeployFile
+}
+
+if ( $Regions -ne "null" ) {
+  if ( $SelectedRegionAws -ne "none" ) {
+    $NumberRegionsEnabled++
   }
 
-  if ( $SELECTED_AZURE_REGION -ne "none" ) {
-    $NUMBER_REGIONS_ENABLED++
+  if ( $SelectedRegionAzure -ne "none" ) {
+    $NumberRegionsEnabled++
   }
 
-  if ( $SELECTED_GCP_REGION -ne "none" ) {
-    $NUMBER_REGIONS_ENABLED++
+  if ( $SelectedRegionGcp -ne "none" ) {
+    $NumberRegionsEnabled++
   }
 }
 
-if ( $NUMBER_REGIONS_ENABLED -gt 0 -and $NUMBER_REGIONS_ENABLED -lt 3 ) {
+if ( $NumberRegionsEnabled -gt 0 -and $NumberRegionsEnabled -lt 3 ) {
   <# Give the option to enable regions not previously enabled #>
-  if ( $SELECTED_AWS_REGION -eq "none" ) {
+  if ( $SelectedRegionAws -eq "none" ) {
     Write-Host ""
-    $REPLY = Read-Host -Prompt "Would you like to enable AWS? (y/N) "
+    $Reply = Read-Host -Prompt "Would you like to enable AWS? (y/N) "
     Write-Host ""
 
-    if ( $REPLY -eq 'y' -or $REPLY -eq 'Y' ) {
+    if ( $Reply -eq 'y' -or $Reply -eq 'Y' ) {
       Set-RegionAws
     }
   }
 
-  if ( $SELECTED_AZURE_REGION -eq "none" ) {
+  if ( $SelectedRegionAzure -eq "none" ) {
     Write-Host ""
-    $REPLY = Read-Host -Prompt "Would you like to enable Azure? (y/N) "
+    $Reply = Read-Host -Prompt "Would you like to enable Azure? (y/N) "
     Write-Host ""
 
-    if ( $REPLY -eq 'y' -or $REPLY -eq 'Y' ) {
+    if ( $Reply -eq 'y' -or $Reply -eq 'Y' ) {
       Set-RegionAzure
     }
   }
 
-  if ( $SELECTED_GCP_REGION -eq "none" ) {
+  if ( $SelectedRegionGcp -eq "none" ) {
     Write-Host ""
-    $REPLY = Read-Host -Prompt "Would you like to enable GCP? (y/N) "
+    $Reply = Read-Host -Prompt "Would you like to enable GCP? (y/N) "
     Write-Host ""
 
-    if ( $REPLY -eq 'y' -or $REPLY -eq 'Y' ) {
+    if ( $Reply -eq 'y' -or $Reply -eq 'Y' ) {
       Set-RegionGcp
     }
   }
 }
-elseif ( $NUMBER_REGIONS_ENABLED -eq 0 ) {
+elseif ( $NumberRegionsEnabled -eq 0 ) {
   <# Prompt User to select their initial regions. #>
   Set-RegionAws
   Set-RegionAzure
   Set-RegionGcp
 }
 
-$REGIONS="$(Get-Regions)"
-$SELECTED_AWS_REGION="$(Get-RegionAws)"
-$SELECTED_AZURE_REGION="$(Get-RegionAzure)"
-$SELECTED_GCP_REGION="$(Get-RegionGcp)"
+$Regions = "$(Get-Regions)"
+$SelectedRegionAws = "$(Get-RegionAws)"
+$SelectedRegionAzure = "$(Get-RegionAzure)"
+$SelectedRegionGcp = "$(Get-RegionGcp)"
 
-if ( $SELECTED_AWS_REGION -ne "none" ) {
-  $AWS_DEFAULT_REGION = "$(aws configure get region)"
+if ( $SelectedRegionAws -ne "none" ) {
+  $DefaultRegionAws = "$(aws configure get region)"
 
-  if ( $SELECTED_AWS_REGION -ne $AWS_DEFAULT_REGION ) {
+  if ( $SelectedRegionAws -ne $DefaultRegionAws ) {
     Write-Host ""
     Write-Host "Selected AWS region does not match the region used by the AWS CLI. Please re-run \"aws configure\" and update the default region."
     exit
   }
 }
 
-$ADMIN_LOCKED_DOWN = Get-AdminLock
+$AdminLockedDown = Get-AdminLock
 
-if ( $ADMIN_LOCKED_DOWN -eq "null" ) {
+if ( $AdminLockedDown -eq "null" ) {
   Write-Host ""
-  $REPLY = Read-Host -Prompt "Lock down certain administrative services (SSH, RDP, and more) so that they can only be accessed from your current public IP address? NOT recommended if you will be switching networks frequently. (y/N) "
+  $Reply = Read-Host -Prompt "Lock down certain administrative services (SSH, RDP, and more) so that they can only be accessed from your current public IP address? NOT recommended if you will be switching networks frequently. (y/N) "
   Write-Host ""
 
-  if ( $REPLY -eq 'y' -or $REPLY -eq 'Y' ) {
-    $ADMIN_LOCKED_DOWN = "true"
+  if ( $Reply -eq 'y' -or $Reply -eq 'Y' ) {
+    $AdminLockedDown = "true"
   }
   else {
-    $ADMIN_LOCKED_DOWN = "false"
+    $AdminLockedDown = "false"
   }
 
-  (jq --arg admin_locked_down "$ADMIN_LOCKED_DOWN" '.admin_locked_down = $admin_locked_down' "$DEPLOY_FILE") | Set-Content $DEPLOY_FILE
+  (jq --arg admin_locked_down "$AdminLockedDown" '.admin_locked_down = $admin_locked_down' "$DeployFile") | Set-Content $DeployFile
 }
 
 Write-Host ""
 Write-Host ("**Selected Regions:**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString -NoNewline
 Write-Host ""
-Write-Host ("**AWS: $SELECTED_AWS_REGION**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString -NoNewline
-Write-Host ("**Azure: $SELECTED_AZURE_REGION**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString -NoNewline
-Write-Host ("**GCP: $SELECTED_GCP_REGION**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString -NoNewline
+Write-Host ("**AWS: $SelectedRegionAws**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString -NoNewline
+Write-Host ("**Azure: $SelectedRegionAzure**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString -NoNewline
+Write-Host ("**GCP: $SelectedRegionGcp**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString -NoNewline
 Write-Host ""
-Write-Host ("**Admin services locked down: $ADMIN_LOCKED_DOWN**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString
+Write-Host ("**Admin services locked down: $AdminLockedDown**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString
 
-if ( $ADMIN_LOCKED_DOWN -eq "true" ) {
+if ( $AdminLockedDown -eq "true" ) {
   $TF_VAR_AllowedAdminCidr = "$((Invoke-WebRequest -Uri ipinfo.io/ip).Content)/32"
 }
 else {
@@ -164,12 +180,48 @@ else {
 
 $TF_VAR_WorkstationSshPublicKey = "$(Get-WksSshPubKey)"
 
-if ( $SELECTED_AWS_REGION -ne "none" -or $SELECTED_AZURE_REGION -ne "none" -or $SELECTED_GCP_REGION -ne "none" ) {
-  Remove-Item -Force $ERRORS_DIR/deploy_*.err
+if ( $SelectedRegionAws -ne "none" -or $SelectedRegionAzure -ne "none" -or $SelectedRegionGcp -ne "none" ) {
+  <# Turn off gcloud HTTP loggin if it is enabled.  HTTP logging writes to stderr, resulting in deployment appearing as partial #>
+  $GcloudLogHttp = "$(gcloud config get-value log_http)"
+  if ( $GcloudLogHttp -eq "true" ) {
+    gcloud config set log_http false
+  }
+  
+  $arrAws = @("aws", $SelectedRegionAws, $PSScriptRoot, $TargetDir)
+  $arrAzure = @("azure", $SelectedRegionAzure, $PSScriptRoot, $TargetDir)
+  $arrGcp = @("gcp", $SelectedRegionGcp, $PSScriptRoot, $TargetDir)
 
-  <# Execute initialize and deploy scripts in parallel #>
-  "aws", "azure", "gcp" | ForEach-Object -Parallel {
-    $PROVIDERUPPER = $_.ToUpper()
-    if ( "$SELECTED_($_.ToUpper())_REGION" )
-  }  -ThrottleLimit 3
+  <# Initialize Tfstate and deploy for each provider in parallel #>
+  $arrAws, $arrAzure, $arrGcp | ForEach-Object -ThrottleLimit 3 -Parallel {
+    $Provider = $_[0]
+    $ProviderRegion = $_[1]
+    $ScriptRoot = $_[2]
+    $ErrDir = $_[3]
+
+    if ( $ProviderRegion -ne "none" ) {
+      <# Initialize Tfstate for the provider #>
+      $InitializeCommand = "{0}/Initialize-Tfstate{1}.ps1 2>> {2}/deploy_{1}.err" -f $ScriptRoot, $Provider, $ErrDir
+      Invoke-Expression $InitializeCommand
+
+      <# Deploy Infrastructure for the provider #>
+      $DeployCommand = "{0}/Deploy-{1}.ps1 2>> {2}/deploy_{1}.err" -f $ScriptRoot, $Provider, $ErrDir
+      Invoke-Expression $DeployCommand
+    }
+  }
+
+  <# Restore gcloud HTTP logging if necessary #>
+  if ( $GcloudLogHttp -eq "true" ) {
+    gcloud config set log_http false
+  }
+
+  if ( Test-Path -Path $TargetDir/deploy_aws.err, $TargetDir/deploy_azure.err, $TargetDir/deploy_gcp.err ) {
+    Get-Content $TargetDir/deploy_*.err
+
+    Write-Host ""
+    Write-Host "Incomplete deployment:"
+    Write-Host ""
+    
+  }
+
+
 }
