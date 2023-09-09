@@ -2,7 +2,8 @@ $ScriptDir = Split-Path -parent $MyInvocation.MyCommand.Path
 Import-Module $PSScriptRoot/PwshCloudInfrastructure.psm1 -Force
 Write-Host "PSScriptRoot: $PSScriptRoot"
 Write-Host "ScriptDir: $ScriptDir"
-# Write-Host "Errors Dir: $(Get-ErrorsDir)"
+Write-Host "Parent Dir: $(Split-Path $ScriptDir)"
+Write-Host "Errors Dir: $(Get-ErrorsDir)"
 # Write-Host "Deploy File Path Function: $(Get-DeployFilePath)"
 # Write-Host "Hash Table Variable SupportedRegionsAws: $(Get-SupportedRegionsAws)"
 # Write-Host "Hash Table Variable SupportedRegionsAzure: $(Get-SupportedRegionsAzure)"
@@ -11,14 +12,14 @@ Write-Host "ScriptDir: $ScriptDir"
 #Set-RegionAzure
 #Set-RegionGcp
 #Start-Sleep -Seconds 10
-# $DeployFile = "$(Get-DeployFilePath)"
-# if ( -not ( Test-Path -Path $DeployFile ) ) {
-#     Write-Host "No Deploy file exists, creating now"
-#     Write-Output "{}" | Set-Content $DeployFile
-# }
-# else {
-#     Write-Host "Deploy File already exists: $DeployFile"
-# }
+$DeployFile = "$(Get-DeployFilePath)"
+if ( -not ( Test-Path -Path $DeployFile ) ) {
+    Write-Host "No Deploy file exists, creating now"
+    Write-Output "{}" | Set-Content $DeployFile
+}
+else {
+    Write-Host "Deploy File already exists: $DeployFile"
+}
 
 # $test_unique_string = Get-UniqueStringAws
 # Write-Host ("**Unique String AWS: $test_unique_string**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString -NoNewline
@@ -85,39 +86,50 @@ $arrAws, $arrAzure, $arrGcp | ForEach-Object -ThrottleLimit 3 -Parallel {
 
 }
 
-#if ( Test-Path -Path $TargetDir/deploy_aws.err, $TargetDir/deploy_azure.err, $TargetDir/deploy_gcp.err ) {
-if ( ((Get-Content -Path $TargetDir/deploy_aws.err).Length -gt 0) -or ((Get-Content -Path $TargetDir/deploy_azure.err).Length -gt 0) -or ((Get-Content -Path $TargetDir/deploy_gcp.err).Length -gt 0)) {
+if (((Get-Content -Path $TargetDir/deploy_aws.err).Length -gt 0) -or `
+    ((Get-Content -Path $TargetDir/deploy_azure.err).Length -gt 0) -or `
+    ((Get-Content -Path $TargetDir/deploy_gcp.err).Length -gt 0)) {
+
     Get-Content $TargetDir/deploy_*.err
 
     Write-Host ""
-    Write-Host "Incomplete deployment:"
+    Write-Host "$($PSStyle.Bold)Incomplete deployment:$($PSStyle.Reset)"
     Write-Host ""
 
     if ($TEST_AWS_REGION -ne "none") {
       if ( (Get-Content -Path $TargetDir/deploy_aws.err).Length -gt 0 ) {
-        Write-Host "AWS: Partial Deployment"
+        Write-Host "$($PSStyle.Foreground.BrightRed)$($PSStyle.Bold)AWS: Partial Deployment$($PSStyle.Reset)"
       }
       else {
-        Write-Host "AWS: Deployment Successful!"
+        Write-Host "$($PSStyle.Foreground.BrightGreen)$($PSStyle.Bold)AWS: Deployment Successful!$($PSStyle.Reset)"
       }
     }
 
     if ($TEST_AZURE_REGION -ne "none") {
       if ( (Get-Content -Path $TargetDir/deploy_azure.err).Length -gt 0 ) {
-        Write-Host "Azure: Partial Deployment"
+        Write-Host "$($PSStyle.Foreground.BrightRed)$($PSStyle.Bold)Azure: Partial Deployment$($PSStyle.Reset)"
       }
       else {
-        Write-Host "Azure: Deployment Successful!"
+        Write-Host "$($PSStyle.Foreground.BrightGreen)$($PSStyle.Bold)Azure: Deployment Successful!$($PSStyle.Reset)"
       }
     }
 
     if ($TEST_GCP_REGION -ne "none") {
       if ( (Get-Content -Path $TargetDir/deploy_gcp.err).Length -gt 0 ) {
-        Write-Host "GCP: Partial Deployment"
+        Write-Host "$($PSStyle.Foreground.BrightRed)$($PSStyle.Bold)GCP: Partial Deployment$($PSStyle.Reset)"
       }
       else {
-        Write-Host "GCP: Deployment Successful!"
+        Write-Host "$($PSStyle.Foreground.BrightGreen)$($PSStyle.Bold)GCP: Deployment Successful!$($PSStyle.Reset)"
       }
     }
-    
+
+    Write-Host ""
+    Write-Host "$($PSStyle.Bold)You can proceed for all successful deployments.$($PSStyle.Reset)"
+    Write-Host "For the partial deployments, please re-run the deployment one time to resolve intermittent issues."
+    Write-Host "If issues persist, please review the error logs in the $TargetDir directory."
+    exit
 }
+
+Write-Host ""
+Write-Host "$($PSStyle.Foreground.BrightGreen)$($PSStyle.Bold)All Deployments Successful!$($PSStyle.Reset)"
+Write-Host ""

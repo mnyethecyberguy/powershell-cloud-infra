@@ -163,13 +163,14 @@ if ( $AdminLockedDown -eq "null" ) {
 }
 
 Write-Host ""
-Write-Host ("**Selected Regions:**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString -NoNewline
+Write-Host "$($PSStyle.Bold)Selected Regions:$($PSStyle.Reset)"
 Write-Host ""
-Write-Host ("**AWS: $SelectedRegionAws**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString -NoNewline
-Write-Host ("**Azure: $SelectedRegionAzure**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString -NoNewline
-Write-Host ("**GCP: $SelectedRegionGcp**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString -NoNewline
+Write-Host "$($PSStyle.Bold)AWS: $SelectedRegionAws$($PSStyle.Reset)"
+Write-Host "$($PSStyle.Bold)Azure: $SelectedRegionAzure$($PSStyle.Reset)"
+Write-Host "$($PSStyle.Bold)GCP: $SelectedRegionGcp$($PSStyle.Reset)"
 Write-Host ""
-Write-Host ("**Admin services locked down: $AdminLockedDown**" | ConvertFrom-Markdown -AsVT100EncodedString).VT100EncodedString
+Write-Host "$($PSStyle.Bold)Admin services locked down: $AdminLockedDown$($PSStyle.Reset)"
+Write-Host ""
 
 if ( $AdminLockedDown -eq "true" ) {
   $TF_VAR_AllowedAdminCidr = "$((Invoke-WebRequest -Uri ipinfo.io/ip).Content)/32"
@@ -214,14 +215,51 @@ if ( $SelectedRegionAws -ne "none" -or $SelectedRegionAzure -ne "none" -or $Sele
     gcloud config set log_http false
   }
 
-  if ( Test-Path -Path $TargetDir/deploy_aws.err, $TargetDir/deploy_azure.err, $TargetDir/deploy_gcp.err ) {
+  if (((Get-Content -Path $TargetDir/deploy_aws.err).Length -gt 0) -or `
+    ((Get-Content -Path $TargetDir/deploy_azure.err).Length -gt 0) -or `
+    ((Get-Content -Path $TargetDir/deploy_gcp.err).Length -gt 0)) {
+
     Get-Content $TargetDir/deploy_*.err
 
     Write-Host ""
-    Write-Host "Incomplete deployment:"
+    Write-Host "$($PSStyle.Bold)Incomplete deployment:$($PSStyle.Reset)"
     Write-Host ""
-    
+
+    if ($SelectedRegionAws -ne "none") {
+      if ( (Get-Content -Path $TargetDir/deploy_aws.err).Length -gt 0 ) {
+        Write-Host "$($PSStyle.Foreground.BrightRed)$($PSStyle.Bold)AWS: Partial Deployment$($PSStyle.Reset)"
+      }
+      else {
+        Write-Host "$($PSStyle.Foreground.BrightGreen)$($PSStyle.Bold)AWS: Deployment Successful!$($PSStyle.Reset)"
+      }
+    }
+
+    if ($SelectedRegionAzure -ne "none") {
+      if ( (Get-Content -Path $TargetDir/deploy_azure.err).Length -gt 0 ) {
+        Write-Host "$($PSStyle.Foreground.BrightRed)$($PSStyle.Bold)Azure: Partial Deployment$($PSStyle.Reset)"
+      }
+      else {
+        Write-Host "$($PSStyle.Foreground.BrightGreen)$($PSStyle.Bold)Azure: Deployment Successful!$($PSStyle.Reset)"
+      }
+    }
+
+    if ($SelectedRegionGcp -ne "none") {
+      if ( (Get-Content -Path $TargetDir/deploy_gcp.err).Length -gt 0 ) {
+        Write-Host "$($PSStyle.Foreground.BrightRed)$($PSStyle.Bold)GCP: Partial Deployment$($PSStyle.Reset)"
+      }
+      else {
+        Write-Host "$($PSStyle.Foreground.BrightGreen)$($PSStyle.Bold)GCP: Deployment Successful!$($PSStyle.Reset)"
+      }
+    }
+
+    Write-Host ""
+    Write-Host "$($PSStyle.Bold)You can proceed for all successful deployments.$($PSStyle.Reset)"
+    Write-Host "For the partial deployments, please re-run the deployment one time to resolve intermittent issues."
+    Write-Host "If issues persist, please review the error logs in the $TargetDir directory."
+    exit
   }
-
-
 }
+
+Write-Host ""
+Write-Host "$($PSStyle.Foreground.BrightGreen)$($PSStyle.Bold)All Deployments Successful!$($PSStyle.Reset)"
+Write-Host ""
