@@ -85,11 +85,39 @@ $arrAws, $arrAzure, $arrGcp | ForEach-Object -ThrottleLimit 3 -Parallel {
 
 }
 
-#if ( Test-Path -Path $TargetDir/deploy_aws.err -or Test-Path -Path $TargetDir/deploy_azure.err -or Test-Path -Path $TargetDir/deploy_gcp.err ) {
-if ( Test-Path -Path $TargetDir/deploy_aws.err, $TargetDir/deploy_azure.err, $TargetDir/deploy_gcp.err ) {
+#if ( Test-Path -Path $TargetDir/deploy_aws.err, $TargetDir/deploy_azure.err, $TargetDir/deploy_gcp.err ) {
+if ( ((Get-Content -Path $TargetDir/deploy_aws.err).Length -gt 0) -or ((Get-Content -Path $TargetDir/deploy_azure.err).Length -gt 0) -or ((Get-Content -Path $TargetDir/deploy_gcp.err).Length -gt 0)) {
     Get-Content $TargetDir/deploy_*.err
 
     Write-Host ""
     Write-Host "Incomplete deployment:"
     Write-Host ""
+
+    if ($TEST_AWS_REGION -ne "none") {
+      if ( (Get-Content -Path $TargetDir/deploy_aws.err).Length -gt 0 ) {
+        Write-Host "AWS: Partial Deployment"
+      }
+      else {
+        Write-Host "AWS: Deployment Successful!"
+      }
+    }
+
+    if ($TEST_AZURE_REGION -ne "none") {
+      if ( (Get-Content -Path $TargetDir/deploy_azure.err).Length -gt 0 ) {
+        Write-Host "Azure: Partial Deployment"
+      }
+      else {
+        Write-Host "Azure: Deployment Successful!"
+      }
+    }
+
+    if ($TEST_GCP_REGION -ne "none") {
+      if ( (Get-Content -Path $TargetDir/deploy_gcp.err).Length -gt 0 ) {
+        Write-Host "GCP: Partial Deployment"
+      }
+      else {
+        Write-Host "GCP: Deployment Successful!"
+      }
+    }
+    
 }

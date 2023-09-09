@@ -6,7 +6,7 @@
   },
   "regions": {
     "aws": "us-east-2",
-    "azure": "none",
+    "azure": "centralus",
     "gcp": "none"
   }
 }
