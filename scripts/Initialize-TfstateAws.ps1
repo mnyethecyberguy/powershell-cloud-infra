@@ -18,7 +18,7 @@ Write-Host "AWS Deployment ID: $UniqueStringAws"
 Write-Host ""
 
 Write-Host "Checking for AWS Terraform state bucket..."
-$BucketName = "tf-$UniqueStringAws"
+$BucketName = "tfstate-$UniqueStringAws"
 $BucketExists = "$(aws s3api list-buckets --query "Buckets[?Name == ``$BucketName``]" | jq '. | length')"
 
 if ( $BucketExists -eq 0 ) {

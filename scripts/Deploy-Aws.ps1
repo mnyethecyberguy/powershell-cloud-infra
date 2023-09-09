@@ -23,7 +23,7 @@ $TF_VAR_DeploymentFile = "$(Get-DeployFilePath)"
 
 Set-Location "$(Split-Path -Path $PSScriptRoot)/infrastructure/terraform/aws"
 
-terraform init -backend-config="bucket=tf-$UniqueStringAws"
+terraform init -backend-config="bucket=tfstate-$UniqueStringAws"
 terraform apply -auto-approve -lock=false
 
 Write-Host ""

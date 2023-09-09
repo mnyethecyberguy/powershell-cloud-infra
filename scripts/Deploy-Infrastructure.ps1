@@ -9,7 +9,7 @@ $ScriptDir = "$($(Set-Location $PSScriptRoot) > $null && $PWD)"
 <# Check if Deploy or Remove scripts already running #>
 if ( (Get-Process -Name pwsh | Where-Object {$_.CommandLine -like "*Deploy-Infrastructure.ps1"} -ne $null ) -or (Get-Process -Name pwsh | Where-Object {$_.CommandLine -like "*Remove-Infrastructure.ps1"} -ne $null ) ) {
   Write-Host "The deploy or remove script is already running.  Only one of these scripts can be run at a time."
-  exit
+  exit 1
 }
 
 <# Check if Deploy file exists, if not then create #>
@@ -147,7 +147,7 @@ if ( $SelectedRegionAws -ne "none" ) {
   if ( $SelectedRegionAws -ne $DefaultRegionAws ) {
     Write-Host ""
     Write-Host "Selected AWS region does not match the region used by the AWS CLI. Please re-run \"aws configure\" and update the default region."
-    exit
+    exit 1
   }
 }
 
@@ -266,7 +266,7 @@ if ( $SelectedRegionAws -ne "none" -or $SelectedRegionAzure -ne "none" -or $Sele
     Write-Host "If issues persist, please review the error logs in the $TargetDir directory."
 
     [System.Console]::Beep()
-    exit
+    exit 1
   }
 }
 
