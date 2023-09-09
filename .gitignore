@@ -1,6 +1,8 @@
 # Local .terraform directories
 **/.terraform/*
 
+deploy_config.json
+
 # .tfstate files
 *.tfstate
 *.tfstate.*
