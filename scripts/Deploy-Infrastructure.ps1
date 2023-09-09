@@ -1,7 +1,7 @@
 Set-PSDebug -Strict
 
-# $ScriptDir = Split-Path -parent $MyInvocation.MyCommand.Path
-Import-Module "$PSScriptRoot/PwshCloudInfrastructure.psm1" -Force
+$ModuleDir = "$(Split-Path $PSScriptRoot)/modules"
+Import-Module $ModuleDir/PwshCloudInfrastructure.psm1 -Force
 
 <# Check if Deploy or Remove scripts already running #>
 if ( (Get-Process -Name pwsh | Where-Object {$_.CommandLine -like "*Deploy-Infrastructure.ps1"} -ne $null ) -or (Get-Process -Name pwsh | Where-Object {$_.CommandLine -like "*Remove-Infrastructure.ps1"} -ne $null ) ) {
@@ -33,6 +33,9 @@ else {
 $CurrentTime = "$(Get-Date -UFormat %s)"
 $TargetDir = "$ErrorsDir/deploy_$CurrentTime"
 New-Item -ItemType Directory -Path $TargetDir | Out-Null
+New-Item -ItemType File -Path $TargetDir/deploy_aws.err | Out-Null
+New-Item -ItemType File -Path $TargetDir/deploy_azure.err | Out-Null
+New-Item -ItemType File -Path $TargetDir/deploy_gcp.err | Out-Null
 
 $UniqueStringAws = "$(Get-UniqueStringAws)"
 $UniqueStringAzure = "$(Get-UniqueStringAzure)"
@@ -179,7 +182,9 @@ else {
   $TF_VAR_AllowedAdminCidr = "0.0.0.0/0"
 }
 
-$TF_VAR_WorkstationSshPublicKey = "$(Get-WksSshPubKey)"
+if ( Test-Path -Path Get-WksSshPubKeyPath ) {
+  $TF_VAR_WorkstationSshPublicKey = "$(Get-WksSshPubKey)"
+}
 
 if ( $SelectedRegionAws -ne "none" -or $SelectedRegionAzure -ne "none" -or $SelectedRegionGcp -ne "none" ) {
   <# Turn off gcloud HTTP loggin if it is enabled.  HTTP logging writes to stderr, resulting in deployment appearing as partial #>

@@ -122,7 +122,7 @@ function Select-Region() {
     $Selection = $Regions[$result]
   }
 
-  (jq --arg region "$Selection" --arg provider "$Provider" '.regions[$provider] = $region' "$PwshCloudInfrastructure.DeployFile") | Set-Content $PwshCloudInfrastructure.DeployFile
+  (jq --arg region "$Selection" --arg provider "$Provider" '.regions[$provider] = $region' $PwshCloudInfrastructure.DeployFile) | Set-Content $PwshCloudInfrastructure.DeployFile
 }
 
 function Set-RegionAws() {
