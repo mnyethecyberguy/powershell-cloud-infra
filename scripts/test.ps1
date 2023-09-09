@@ -1,11 +1,18 @@
 Set-PSDebug -Strict
-$ScriptDir = Split-Path -parent $MyInvocation.MyCommand.Path
+
+Write-Host "PWD: $PWD"
+$CallingDir = "$PWD"
+
+$ScriptDir = "$($(Set-Location $PSScriptRoot) > $null && $PWD)"
+Write-Host "ScriptDir: $ScriptDir"
+Write-Host "PSScriptRoot: $PSScriptRoot"
+
 $ModuleDir = "$(Split-Path $PSScriptRoot)/modules"
 Import-Module $ModuleDir/PwshCloudInfrastructure.psm1 -Force
-Write-Host "PSScriptRoot: $PSScriptRoot"
-Write-Host "ScriptDir: $ScriptDir"
-Write-Host "Parent Dir: $(Split-Path $ScriptDir)"
-Write-Host "Errors Dir: $(Get-ErrorsDir)"
+
+
+#Write-Host "Parent Dir: $(Split-Path $ScriptDir)"
+#Write-Host "Errors Dir: $(Get-ErrorsDir)"
 # Write-Host "Deploy File Path Function: $(Get-DeployFilePath)"
 # Write-Host "Hash Table Variable SupportedRegionsAws: $(Get-SupportedRegionsAws)"
 # Write-Host "Hash Table Variable SupportedRegionsAzure: $(Get-SupportedRegionsAzure)"
@@ -69,9 +76,9 @@ New-Item -ItemType File -Path $TargetDir/deploy_aws.err | Out-Null
 New-Item -ItemType File -Path $TargetDir/deploy_azure.err | Out-Null
 New-Item -ItemType File -Path $TargetDir/deploy_gcp.err | Out-Null
 
-$arrAws = @("aws", $TEST_AWS_REGION, $PSScriptRoot, $TargetDir)
-$arrAzure = @("azure", $TEST_AZURE_REGION, $PSScriptRoot, $TargetDir)
-$arrGcp = @("gcp", $TEST_GCP_REGION, $PSScriptRoot, $TargetDir)
+$arrAws = @("aws", $TEST_AWS_REGION, $ScriptDir, $TargetDir)
+$arrAzure = @("azure", $TEST_AZURE_REGION, $ScriptDir, $TargetDir)
+$arrGcp = @("gcp", $TEST_GCP_REGION, $ScriptDir, $TargetDir)
 
 $arrAws, $arrAzure, $arrGcp | ForEach-Object -ThrottleLimit 3 -Parallel {
     $Provider = $_[0]
@@ -138,3 +145,5 @@ if (((Get-Content -Path $TargetDir/deploy_aws.err).Length -gt 0) -or `
 Write-Host ""
 Write-Host "$($PSStyle.Foreground.BrightGreen)$($PSStyle.Bold)All Deployments Successful!$($PSStyle.Reset)"
 Write-Host ""
+
+Set-Location $CallingDir

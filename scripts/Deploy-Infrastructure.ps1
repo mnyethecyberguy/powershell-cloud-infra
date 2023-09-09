@@ -3,6 +3,9 @@ Set-PSDebug -Strict
 $ModuleDir = "$(Split-Path $PSScriptRoot)/modules"
 Import-Module $ModuleDir/PwshCloudInfrastructure.psm1 -Force
 
+$CallingDir = "$PWD"
+$ScriptDir = "$($(Set-Location $PSScriptRoot) > $null && $PWD)"
+
 <# Check if Deploy or Remove scripts already running #>
 if ( (Get-Process -Name pwsh | Where-Object {$_.CommandLine -like "*Deploy-Infrastructure.ps1"} -ne $null ) -or (Get-Process -Name pwsh | Where-Object {$_.CommandLine -like "*Remove-Infrastructure.ps1"} -ne $null ) ) {
   Write-Host "The deploy or remove script is already running.  Only one of these scripts can be run at a time."
@@ -193,9 +196,9 @@ if ( $SelectedRegionAws -ne "none" -or $SelectedRegionAzure -ne "none" -or $Sele
     gcloud config set log_http false
   }
   
-  $arrAws = @("aws", $SelectedRegionAws, $PSScriptRoot, $TargetDir)
-  $arrAzure = @("azure", $SelectedRegionAzure, $PSScriptRoot, $TargetDir)
-  $arrGcp = @("gcp", $SelectedRegionGcp, $PSScriptRoot, $TargetDir)
+  $arrAws = @("aws", $SelectedRegionAws, $ScriptDir, $TargetDir)
+  $arrAzure = @("azure", $SelectedRegionAzure, $ScriptDir, $TargetDir)
+  $arrGcp = @("gcp", $SelectedRegionGcp, $ScriptDir, $TargetDir)
 
   <# Initialize Tfstate and deploy for each provider in parallel #>
   $arrAws, $arrAzure, $arrGcp | ForEach-Object -ThrottleLimit 3 -Parallel {
@@ -268,3 +271,5 @@ if ( $SelectedRegionAws -ne "none" -or $SelectedRegionAzure -ne "none" -or $Sele
 Write-Host ""
 Write-Host "$($PSStyle.Foreground.BrightGreen)$($PSStyle.Bold)All Deployments Successful!$($PSStyle.Reset)"
 Write-Host ""
+
+Set-Location $CallingDir
