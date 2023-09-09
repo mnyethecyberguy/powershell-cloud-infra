@@ -1,14 +1,11 @@
 <# Global variables and functions #>
 $PwshCloudInfrastructure = [ordered]@{
-  DeployFile            = "$PSScriptRoot/deploy_config.json"
-  ErrorsDir             = "$PSScriptRoot/deploy_errors"
-  ColorError            = "Red"
-  ColorSuccess          = "Green"
-  ColorInfo             = "Cyan"
+  DeployFile            = "$(Split-Path $PSScriptRoot)/deploy_config.json"
+  ErrorsDir             = "$(Split-Path $PSScriptRoot)/deploy_errors"
   SupportedRegionsAws   = "us-east-1", "us-east-2", "us-west-1", "us-west-2"
   SupportedRegionsAzure = "eastus", "eastus2", "centralus", "southcentralus", "westus", "westus2", "westus3"
   SupportedRegionsGcp   = "us-east1", "us-east4", "us-east5", "us-central1", "us-south1", "us-west1", "us-west2"
-  WksSshPubKey          = "$PSScriptRoot/id_rsa.pub"
+  WksSshPubKey          = "$(Split-Path $PSScriptRoot)/id_rsa.pub"
 }
 
 New-Variable -Name PwshCloudInfrastructure -Value $PwshCloudInfrastructure -Scope Script -Force
@@ -142,6 +139,10 @@ function Set-RegionGcp() {
 
 function Get-WksSshPubKey() {
   Get-Content $PwshCloudInfrastructure.WksSshPubKey
+}
+
+function Get-WksSshPubKeyPath() {
+  $PwshCloudInfrastructure.WksSshPubKey
 }
 
 function New-UniqueString() {

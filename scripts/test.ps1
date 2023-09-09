@@ -1,5 +1,7 @@
+Set-PSDebug -Strict
 $ScriptDir = Split-Path -parent $MyInvocation.MyCommand.Path
-Import-Module $PSScriptRoot/PwshCloudInfrastructure.psm1 -Force
+$ModuleDir = "$(Split-Path $PSScriptRoot)/modules"
+Import-Module $ModuleDir/PwshCloudInfrastructure.psm1 -Force
 Write-Host "PSScriptRoot: $PSScriptRoot"
 Write-Host "ScriptDir: $ScriptDir"
 Write-Host "Parent Dir: $(Split-Path $ScriptDir)"
@@ -63,6 +65,9 @@ else {
 $CurrentTime = "$(Get-Date -UFormat %s)"
 $TargetDir = "$ErrorsDir/deploy_$CurrentTime"
 New-Item -ItemType Directory -Path $TargetDir | Out-Null
+New-Item -ItemType File -Path $TargetDir/deploy_aws.err | Out-Null
+New-Item -ItemType File -Path $TargetDir/deploy_azure.err | Out-Null
+New-Item -ItemType File -Path $TargetDir/deploy_gcp.err | Out-Null
 
 $arrAws = @("aws", $TEST_AWS_REGION, $PSScriptRoot, $TargetDir)
 $arrAzure = @("azure", $TEST_AZURE_REGION, $PSScriptRoot, $TargetDir)
