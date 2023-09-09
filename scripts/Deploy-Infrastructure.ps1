@@ -264,6 +264,8 @@ if ( $SelectedRegionAws -ne "none" -or $SelectedRegionAzure -ne "none" -or $Sele
     Write-Host "$($PSStyle.Bold)You can proceed for all successful deployments.$($PSStyle.Reset)"
     Write-Host "For the partial deployments, please re-run the deployment one time to resolve intermittent issues."
     Write-Host "If issues persist, please review the error logs in the $TargetDir directory."
+
+    [System.Console]::Beep()
     exit
   }
 }
@@ -271,5 +273,7 @@ if ( $SelectedRegionAws -ne "none" -or $SelectedRegionAzure -ne "none" -or $Sele
 Write-Host ""
 Write-Host "$($PSStyle.Foreground.BrightGreen)$($PSStyle.Bold)All Deployments Successful!$($PSStyle.Reset)"
 Write-Host ""
+
+[System.Console]::Beep()
 
 Set-Location $CallingDir
