@@ -34,3 +34,27 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+# macOS files
+.DS_Store
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+
+# Windows files
+Thumbs.db
+desktop.ini
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+
+# Packages
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
