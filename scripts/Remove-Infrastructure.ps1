@@ -111,7 +111,7 @@ $TF_VAR_AllowedAdminCidr = "0.0.0.0/0"
 if ( Test-Path -Path Get-WksSshPubKeyPath ) {
   $TF_VAR_WorkstationSshPublicKey = "$(Get-WksSshPubKey)"
 }
-$TF_VAR_DeploymentFile = "$(Get-DeployFilePath)"
+$TF_VAR_DeploymentFile = "$DeployFile"
 
 if ( $TeardownAws -eq "Yes" -or $TeardownAzure -eq "Yes" -or $TeardownGcp -eq "Yes" ) {
   $arrAws = @("aws", $TeardownAws, $ScriptDir, $TargetDir)
