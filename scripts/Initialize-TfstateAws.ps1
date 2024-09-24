@@ -4,21 +4,21 @@ $ModuleDir = "$(Split-Path $PSScriptRoot)/modules"
 Import-Module $ModuleDir/PwshCloudInfrastructure.psm1 -Force
 
 $Regions = "$(Get-Regions)"
-$UniqueStringAws = "$(Get-UniqueStringAws)"
+$IdAws = "$(Get-UniqueStringAws)"
 $DefaultRegionAws = "$(Get-RegionAws)"
 
-if ( ($Regions -eq "null") -or ($UniqueStringAws -eq "null") -or ($DefaultRegionAws -eq "none")) {
+if ( ($Regions -eq "null") -or ($IdAws -eq "null") -or ($DefaultRegionAws -eq "none")) {
   Write-Host "AWS not configured.  Please run Deploy-Infrastructure.ps1 to enable AWS."
   exit 1
 }
 
 Write-Host ""
 Write-Host "Initializing AWS Tfstate....."
-Write-Host "AWS Deployment ID: $UniqueStringAws"
+Write-Host "AWS Deployment ID: $IdAws"
 Write-Host ""
 
 Write-Host "Checking for AWS Terraform state bucket..."
-$BucketName = "pwsh-tfstate-$UniqueStringAws"
+$BucketName = "pwsh-tfstate-$IdAws"
 $BucketExists = "$(aws s3api list-buckets --query "Buckets[?Name == ``$BucketName``]" | jq '. | length')"
 
 if ( $BucketExists -eq 0 ) {

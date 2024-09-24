@@ -12,7 +12,7 @@ Import-Module $ModuleDir/PwshCloudInfrastructure.psm1 -Force
 #$UniqueStringAws = "$(Get-UniqueStringAws)"
 
 <# Check if CloudTrail exists #>
-if (  $null -ne $(aws cloudtrail list-trails | jq '.Trails[] | select(.name=="pwsh-cloud-trail").name') ) {
+if ( $null -ne $(aws cloudtrail list-trails | jq '.Trails[] | select(.name=="pwsh-cloudtrail").name') ) {
   Write-Host "CloudTrail still exists."
 }
 
@@ -22,7 +22,7 @@ if ( $null -ne $(aws s3api list-buckets --query "Buckets[].Name" | jq -r '.[] | 
 }
 
 <# Check if deployment bucket exists #>
-if ( $null -ne $(aws s3api list-buckets --query "Buckets[].Name" | jq -r '.[] | select(startswith("deployment"))') ) {
+if ( $null -ne $(aws s3api list-buckets --query "Buckets[].Name" | jq -r '.[] | select(startswith("pwsh-deployment"))') ) {
   Write-Host "deployment S3 bucket still exists."
 }
 
