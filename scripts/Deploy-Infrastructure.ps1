@@ -151,21 +151,21 @@ if ( $SelectedRegionAws -ne "none" ) {
   }
 }
 
-$AdminLockedDown = Get-AdminLock
+$AdminLock = Get-AdminLock
 
-if ( $AdminLockedDown -eq "null" ) {
+if ( $AdminLock -eq "null" ) {
   Write-Host ""
   $Reply = Read-Host -Prompt "Lock down certain administrative services (SSH, RDP, and more) so that they can only be accessed from your current public IP address? NOT recommended if you will be switching networks frequently. (y/N) "
   Write-Host ""
 
   if ( $Reply -eq 'y' -or $Reply -eq 'Y' ) {
-    $AdminLockedDown = "true"
+    $AdminLock = "true"
   }
   else {
-    $AdminLockedDown = "false"
+    $AdminLock = "false"
   }
 
-  (jq --arg admin_locked_down "$AdminLockedDown" '.admin_locked_down = $admin_locked_down' "$DeployConfig") | Set-Content $DeployConfig
+  (jq --arg admin_lock "$AdminLock" '.admin_lock = $admin_lock' "$DeployConfig") | Set-Content $DeployConfig
 }
 
 Write-Host ""
@@ -175,18 +175,18 @@ Write-Host "$($PSStyle.Bold)AWS: $SelectedRegionAws$($PSStyle.Reset)"
 Write-Host "$($PSStyle.Bold)Azure: $SelectedRegionAzure$($PSStyle.Reset)"
 Write-Host "$($PSStyle.Bold)GCP: $SelectedRegionGcp$($PSStyle.Reset)"
 Write-Host ""
-Write-Host "$($PSStyle.Bold)Admin services locked down: $AdminLockedDown$($PSStyle.Reset)"
+Write-Host "$($PSStyle.Bold)Admin services locked down: $AdminLock$($PSStyle.Reset)"
 Write-Host ""
 
-if ( $AdminLockedDown -eq "true" ) {
-  $TF_VAR_AllowedAdminCidr = "$((Invoke-WebRequest -Uri ipinfo.io/ip).Content)/32"
+if ( $AdminLock -eq "true" ) {
+  $env:TF_VAR_AllowedAdminCidr = "$((Invoke-WebRequest -Uri ipinfo.io/ip).Content)/32"
 }
 else {
-  $TF_VAR_AllowedAdminCidr = "0.0.0.0/0"
+  $env:TF_VAR_AllowedAdminCidr = "0.0.0.0/0"
 }
 
 if ( Test-Path -Path Get-WksSshPubKeyPath ) {
-  $TF_VAR_WorkstationSshPublicKey = "$(Get-WksSshPubKey)"
+  $env:TF_VAR_WorkstationSshPublicKey = "$(Get-WksSshPubKey)"
 }
 
 if ( $SelectedRegionAws -ne "none" -or $SelectedRegionAzure -ne "none" -or $SelectedRegionGcp -ne "none" ) {

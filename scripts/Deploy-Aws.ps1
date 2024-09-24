@@ -18,12 +18,13 @@ Write-Host ""
 Write-Host "Deploying AWS infrastructure....."
 Write-Host ""
 
-$TF_VAR_UidAws = "$UidAws"
-$TF_VAR_DeployConfig = "$(Get-DeployConfigPath)"
+<# Set Terraform environment variables #>
+$env:TF_VAR_uid_aws = "$UidAws"
+$env:TF_VAR_deploy_config = "$(Get-DeployConfigPath)"
 
 Set-Location "$(Split-Path -Path $PSScriptRoot)/infrastructure/terraform/aws"
 
-terraform init -backend-config="bucket=pwsh-tfstate-$UidAws"
+terraform init -upgrade -backend-config="bucket=pwsh-tfstate-$UidAws" -backend-config="region=$DefaultRegionAws"
 terraform apply -auto-approve -lock=false
 
 Write-Host ""

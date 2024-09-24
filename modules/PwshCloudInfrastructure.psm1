@@ -47,7 +47,7 @@ function Get-Regions() {
 }
 
 function Get-AdminLock() {
-  Get-Content $PwshCloudInfrastructure.DeployConfig | jq -r '.admin_locked_down'
+  Get-Content $PwshCloudInfrastructure.DeployConfig | jq -r '.admin_lock'
 }
 
 function Get-SupportedRegionsAws() {
