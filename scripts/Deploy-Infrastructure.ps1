@@ -13,13 +13,13 @@ if ( (Get-Process -Name pwsh | Where-Object {$_.CommandLine -like "*Deploy-Infra
 }
 
 <# Check if Deploy file exists, if not then create #>
-$DeployFile = $(Get-DeployFilePath)
-if ( -not ( Test-Path -Path $DeployFile ) ) {
-  Write-Host "No Deploy file exists, creating now"
-  Write-Output "{}" | Set-Content $DeployFile
+$DeployConfig = $(Get-DeployConfigPath)
+if ( -not ( Test-Path -Path $DeployConfig ) ) {
+  Write-Host "No Deploy config file exists, creating now"
+  Write-Output "{}" | Set-Content $DeployConfig
 }
 else {
-  Write-Host "Deploy File already exists: $DeployFile"
+  Write-Host "Deploy config file already exists: $DeployConfig"
 }
 
 <# Check if error log directory exists, if not then create #>
@@ -40,26 +40,26 @@ New-Item -ItemType File -Path $TargetDir/deploy_aws.err | Out-Null
 New-Item -ItemType File -Path $TargetDir/deploy_azure.err | Out-Null
 New-Item -ItemType File -Path $TargetDir/deploy_gcp.err | Out-Null
 
-$UniqueStringAws = "$(Get-UniqueStringAws)"
-$UniqueStringAzure = "$(Get-UniqueStringAzure)"
-$UniqueStringGcp = "$(Get-UniqueStringGcp)"
+$UidAws = "$(Get-UidAws)"
+$UidAzure = "$(Get-UidAzure)"
+$UidGcp = "$(Get-UidGcp)"
 
-if ( $UniqueStringAws -eq "null") {
-  $UniqueString = New-UniqueString
-  Write-Host "Generated new AWS identifier: $UniqueString"
-  (jq --arg aws "$UniqueString" '.unique_strings.aws = $aws' "$DeployFile") | Set-Content $DeployFile
+if ( $UidAws -eq "null" ) {
+  $Uid = New-Uid
+  Write-Host "Generated new AWS identifier: $Uid"
+  (jq --arg aws "$Uid" '.uid.aws = $aws' "$DeployConfig") | Set-Content $DeployConfig
 }
 
-if ( $UniqueStringAzure -eq "null") {
-  $UniqueString = New-UniqueString
-  Write-Host "Generated new Azure identifier: $UniqueString"
-  (jq --arg azure "$UniqueString" '.unique_strings.azure = $azure' "$DeployFile") | Set-Content $DeployFile
+if ( $UidAzure -eq "null" ) {
+  $Uid = New-Uid
+  Write-Host "Generated new Azure identifier: $Uid"
+  (jq --arg azure "$Uid" '.uid.azure = $azure' "$DeployConfig") | Set-Content $DeployConfig
 }
 
-if ( $UniqueStringGcp -eq "null") {
-  $UniqueString = New-UniqueString
-  Write-Host "Generated new AWS identifier: $UniqueString"
-  (jq --arg gcp "$UniqueString" '.unique_strings.gcp = $gcp' "$DeployFile") | Set-Content $DeployFile
+if ( $UidGcp -eq "null" ) {
+  $Uid = New-Uid
+  Write-Host "Generated new AWS identifier: $Uid"
+  (jq --arg gcp "$Uid" '.uid.gcp = $gcp' "$DeployConfig") | Set-Content $DeployConfig
 }
 
 $Regions = "$(Get-Regions)"
@@ -70,17 +70,17 @@ $NumberRegionsEnabled = 0
 
 if ( $SelectedRegionAws -eq "null" ) {
   $SelectedRegionAws = "none"
-  (jq '.regions.aws = "none"' $DeployFile) | Set-Content $DeployFile
+  (jq '.regions.aws = "none"' $DeployConfig) | Set-Content $DeployConfig
 }
 
 if ( $SelectedRegionAzure -eq "null" ) {
   $SelectedRegionAzure = "none"
-  (jq '.regions.azure = "none"' $DeployFile) | Set-Content $DeployFile
+  (jq '.regions.azure = "none"' $DeployConfig) | Set-Content $DeployConfig
 }
 
 if ( $SelectedRegionGcp -eq "null" ) {
   $SelectedRegionGcp = "none"
-  (jq '.regions.gcp = "none"' $DeployFile) | Set-Content $DeployFile
+  (jq '.regions.gcp = "none"' $DeployConfig) | Set-Content $DeployConfig
 }
 
 if ( $Regions -ne "null" ) {
@@ -165,7 +165,7 @@ if ( $AdminLockedDown -eq "null" ) {
     $AdminLockedDown = "false"
   }
 
-  (jq --arg admin_locked_down "$AdminLockedDown" '.admin_locked_down = $admin_locked_down' "$DeployFile") | Set-Content $DeployFile
+  (jq --arg admin_locked_down "$AdminLockedDown" '.admin_locked_down = $admin_locked_down' "$DeployConfig") | Set-Content $DeployConfig
 }
 
 Write-Host ""

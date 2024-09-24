@@ -1,4 +1,4 @@
-variable "id_gcp" {
+variable "uid_gcp" {
   description = "This is a unique identifier for GCP. It will be used to create globally unique resources (Ex. storage buckets)."
   type        = string
   default     = null

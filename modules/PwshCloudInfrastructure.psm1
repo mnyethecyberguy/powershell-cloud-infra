@@ -1,6 +1,6 @@
 <# Global variables and functions #>
 $PwshCloudInfrastructure = [ordered]@{
-  DeployFile            = "$(Split-Path $PSScriptRoot)/deploy_config.json"
+  DeployConfig          = "$(Split-Path $PSScriptRoot)/deploy_config.json"
   ErrorsDir             = "$(Split-Path $PSScriptRoot)/deploy_errors"
   SupportedRegionsAws   = "us-east-1", "us-east-2", "us-west-1", "us-west-2"
   SupportedRegionsAzure = "eastus", "eastus2", "centralus", "southcentralus", "westus", "westus2", "westus3"
@@ -10,44 +10,44 @@ $PwshCloudInfrastructure = [ordered]@{
 
 New-Variable -Name PwshCloudInfrastructure -Value $PwshCloudInfrastructure -Scope Script -Force
 
-function Get-DeployFilePath() {
-  $PwshCloudInfrastructure.DeployFile
+function Get-DeployConfigPath() {
+  $PwshCloudInfrastructure.DeployConfig
 }
 
 function Get-ErrorsDir() {
   $PwshCloudInfrastructure.ErrorsDir
 }
 
-function Get-UniqueStringAws() {
-  Get-Content $PwshCloudInfrastructure.DeployFile | jq -r '.unique_strings.aws'
+function Get-UidAws() {
+  Get-Content $PwshCloudInfrastructure.DeployConfig | jq -r '.uid.aws'
 }
 
-function Get-UniqueStringAzure() {
-  Get-Content $PwshCloudInfrastructure.DeployFile | jq -r '.unique_strings.azure'
+function Get-UidAzure() {
+  Get-Content $PwshCloudInfrastructure.DeployConfig | jq -r '.uid.azure'
 }
 
-function Get-UniqueStringGcp() {
-  Get-Content $PwshCloudInfrastructure.DeployFile | jq -r '.unique_strings.gcp'
+function Get-UidGcp() {
+  Get-Content $PwshCloudInfrastructure.DeployConfig | jq -r '.uid.gcp'
 }
 
 function Get-RegionAws() {
-  Get-Content $PwshCloudInfrastructure.DeployFile | jq -r '.regions.aws'
+  Get-Content $PwshCloudInfrastructure.DeployConfig | jq -r '.regions.aws'
 }
 
 function Get-RegionAzure() {
-  Get-Content $PwshCloudInfrastructure.DeployFile | jq -r '.regions.azure'
+  Get-Content $PwshCloudInfrastructure.DeployConfig | jq -r '.regions.azure'
 }
 
 function Get-RegionGcp() {
-  Get-Content $PwshCloudInfrastructure.DeployFile | jq -r '.regions.gcp'
+  Get-Content $PwshCloudInfrastructure.DeployConfig | jq -r '.regions.gcp'
 }
 
 function Get-Regions() {
-  Get-Content $PwshCloudInfrastructure.DeployFile | jq -r '.regions'
+  Get-Content $PwshCloudInfrastructure.DeployConfig | jq -r '.regions'
 }
 
 function Get-AdminLock() {
-  Get-Content $PwshCloudInfrastructure.DeployFile | jq -r '.admin_locked_down'
+  Get-Content $PwshCloudInfrastructure.DeployConfig | jq -r '.admin_locked_down'
 }
 
 function Get-SupportedRegionsAws() {
@@ -122,7 +122,7 @@ function Select-Region() {
     $Selection = $Regions[$result]
   }
 
-  (jq --arg region "$Selection" --arg provider "$Provider" '.regions[$provider] = $region' $PwshCloudInfrastructure.DeployFile) | Set-Content $PwshCloudInfrastructure.DeployFile
+  (jq --arg region "$Selection" --arg provider "$Provider" '.regions[$provider] = $region' $PwshCloudInfrastructure.DeployConfig) | Set-Content $PwshCloudInfrastructure.DeployConfig
 }
 
 function Set-RegionAws() {
@@ -145,6 +145,6 @@ function Get-WksSshPubKeyPath() {
   $PwshCloudInfrastructure.WksSshPubKey
 }
 
-function New-UniqueString() {
+function New-Uid() {
   -join ((48..57) + (97..122) | Get-Random -Count 12 | ForEach-Object {[char]$_})
 }

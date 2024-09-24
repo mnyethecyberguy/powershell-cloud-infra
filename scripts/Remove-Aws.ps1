@@ -29,12 +29,12 @@ if ( (Get-Process -Name pwsh | Where-Object {$_.CommandLine -like "*Deploy-Infra
   exit 1
 }
 
-$DeployFile = $(Get-DeployFilePath)
-$UniqueStringAws = "$(Get-UniqueStringAws)"
+$DeployConfig = $(Get-DeployConfigPath)
+$UidAws = "$(Get-UidAws)"
 $DefaultRegionAws = "$(Get-RegionAws)"
 $Regions = "$(Get-Regions)"
 
-if ( ($Regions -eq "null") -or ($UniqueStringAws -eq "null") -or ($DefaultRegionAws -eq "none")) {
+if ( ($Regions -eq "null") -or ($UidAws -eq "null") -or ($DefaultRegionAws -eq "none")) {
   Write-Host "AWS not configured.  Please run Deploy-Infrastructure.ps1 to enable AWS."
   exit 1
 }
@@ -50,7 +50,7 @@ if ( $PwshCloudTrail -ne "" ) {
   aws cloudtrail delete-trail --name "$PwshCloudTrail"
 }
 
-Clear-Bucket -BucketName "pwsh-cloudtrail-$UniqueStringAws"
+Clear-Bucket -BucketName "pwsh-cloudtrail-$UidAws"
 
 
 Set-Location "$(Split-Path -Path $ScriptDir)/infrastructure/terraform/aws"
@@ -59,13 +59,13 @@ terraform destroy -auto-approve -lock=false
 
 Write-Host ""
 Write-Host "Removing AWS Terraform state bucket....."
-$TfstateBucketName = "pwsh-tfstate-$UniqueStringAws"
+$TfstateBucketName = "pwsh-tfstate-$UidAws"
 Clear-Bucket -BucketName "$TfstateBucketName"
 aws s3api delete-bucket --bucket "$TfstateBucketName"
 
 <# Delete the local tfstate file #>
 Remove-Item -Path ./.terraform/terraform.tfstate -Force
 
-(jq --arg unique_string "$UniqueStringAws" --arg timestamp "$(Get-Date -UFormat %s)" 'del( .unique_strings.aws ) | .unique_strings["aws_" + $timestamp] = $unique_string | .regions.aws = "none"' "$DeployFile") | Set-Content "$DeployFile" > $null
+(jq --arg uid "$UidAws" --arg timestamp "$(Get-Date -UFormat %s)" 'del( .uid.aws ) | .uid["aws_" + $timestamp] = $uid | .regions.aws = "none"' "$DeployConfig") | Set-Content "$DeployConfig" > $null
 
 Set-Location $CallingDir
