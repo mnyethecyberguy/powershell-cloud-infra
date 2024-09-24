@@ -44,7 +44,7 @@ Write-Host "Removing AWS infrastructure....."
 Write-Host ""
 
 <# If CloudTrail bucket was built, stop CloudTrail and clear the bucket #>
-$PwshCloudTrail = "$(aws cloudtrail list-trails | jq '.Trails[] | select(.name=="pwsh-cloud-trail").name')"
+$PwshCloudTrail = "$(aws cloudtrail list-trails | jq '.Trails[] | select(.name=="pwsh-cloudtrail").name')"
 
 if ( $PwshCloudTrail -ne "" ) {
   aws cloudtrail delete-trail --name "$PwshCloudTrail"

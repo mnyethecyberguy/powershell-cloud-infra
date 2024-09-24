@@ -1,5 +1,5 @@
-variable "id_aws" {
-  description = "This is a unique identifier for AWS. It will be used to create globally unique resources (Ex. S3 buckets)."
+variable "id_gcp" {
+  description = "This is a unique identifier for GCP. It will be used to create globally unique resources (Ex. storage buckets)."
   type        = string
   default     = null
 }
