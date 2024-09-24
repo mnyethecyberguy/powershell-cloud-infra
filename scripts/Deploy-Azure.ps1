@@ -6,10 +6,10 @@ Import-Module $ModuleDir/PwshCloudInfrastructure.psm1 -Force
 $CallingDir = "$PWD"
 
 $Regions = "$(Get-Regions)"
-$UniqueStringAzure = "$(Get-UniqueStringAzure)"
+$UidAzure = "$(Get-UidAzure)"
 $DefaultRegionAzure = "$(Get-RegionAzure)"
 
-if ( ($Regions -eq "null") -or ($UniqueStringAzure -eq "null") -or ($DefaultRegionAzure -eq "none")) {
+if ( ($Regions -eq "null") -or ($UidAzure -eq "null") -or ($DefaultRegionAzure -eq "none")) {
   Write-Host "Azure not configured.  Please run Deploy-Infrastructure.ps1 to enable Azure."
   exit 1
 }
@@ -18,12 +18,12 @@ Write-Host ""
 Write-Host "Deploying Azure infrastructure....."
 Write-Host ""
 
-$TF_VAR_UniqueStringAzure = "$UniqueStringAzure"
-$TF_VAR_DeploymentFile = "$(Get-DeployFilePath)"
+$TF_VAR_UidAzure = "$UidAzure"
+$TF_VAR_DeployConfig = "$(Get-DeployConfigPath)"
 
 Set-Location "$(Split-Path -Path $PSScriptRoot)/infrastructure/terraform/azure"
 
-terraform init -backend-config="bucket=pwsh-tfstate-$UniqueStringAzure"
+terraform init -backend-config="bucket=pwsh-tfstate-$UidAzure"
 terraform apply -auto-approve -lock=false
 
 Write-Host ""
