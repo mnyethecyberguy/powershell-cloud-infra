@@ -61,6 +61,7 @@ function Get-SupportedRegionsAzure() {
 function Get-SupportedRegionsGcp() {
   $PwshCloudInfrastructure.SupportedRegionsGcp
 }
+
 function Test-AwsEnabled() {
   $SelectedAwsRegion = Get-RegionAws
 

@@ -18,8 +18,9 @@ Write-Host ""
 Write-Host "Deploying GCP infrastructure....."
 Write-Host ""
 
-$TF_VAR_UidGcp = "$UidGcp"
-$TF_VAR_DeployConfig = "$(Get-DeployConfigPath)"
+<# Set Terraform environment variables #>
+$env:TF_VAR_uid_gcp = "$UidGcp"
+$env:TF_VAR_deploy_config = "$(Get-DeployConfigPath)"
 
 Set-Location "$(Split-Path -Path $PSScriptRoot)/infrastructure/terraform/gcp"
 

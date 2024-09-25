@@ -9,7 +9,8 @@ $Regions = "$(Get-Regions)"
 $UidAws = "$(Get-UidAws)"
 $DefaultRegionAws = "$(Get-RegionAws)"
 
-if ( ($Regions -eq "null") -or ($UidAws -eq "null") -or ($DefaultRegionAws -eq "none")) {
+#if ( ($Regions -eq "null") -or ($UidAws -eq "null") -or ($DefaultRegionAws -eq "none")) {
+if ( Test-AwsEnabled -eq "false" ) {
   Write-Host "AWS not configured.  Please run Deploy-Infrastructure.ps1 to enable AWS."
   exit 1
 }
