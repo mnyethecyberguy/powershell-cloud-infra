@@ -9,7 +9,8 @@ $Regions = "$(Get-Regions)"
 $UidAzure = "$(Get-UidAzure)"
 $DefaultRegionAzure = "$(Get-RegionAzure)"
 
-if ( ($Regions -eq "null") -or ($UidAzure -eq "null") -or ($DefaultRegionAzure -eq "none")) {
+# if ( ($Regions -eq "null") -or ($UidAzure -eq "null") -or ($DefaultRegionAzure -eq "none")) {
+if ( Test-AzureEnabled -eq "false" ) {
   Write-Host "Azure not configured.  Please run Deploy-Infrastructure.ps1 to enable Azure."
   exit 1
 }

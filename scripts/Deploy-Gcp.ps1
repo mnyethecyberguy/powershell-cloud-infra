@@ -9,7 +9,8 @@ $Regions = "$(Get-Regions)"
 $UidGcp = "$(Get-UidGcp)"
 $DefaultRegionGcp = "$(Get-RegionGcp)"
 
-if ( ($Regions -eq "null") -or ($UidGcp -eq "null") -or ($DefaultRegionGcp -eq "none")) {
+# if ( ($Regions -eq "null") -or ($UidGcp -eq "null") -or ($DefaultRegionGcp -eq "none")) {
+if ( Test-GcpEnabled -eq "false" ) {
   Write-Host "GCP not configured.  Please run Deploy-Infrastructure.ps1 to enable GCP."
   exit 1
 }
