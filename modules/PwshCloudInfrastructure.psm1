@@ -78,7 +78,7 @@ function Test-AzureEnabled() {
   $SelectedAzureRegion = Get-RegionAzure
   $UidAzure = Get-UidAzure
 
-  if ( $UidAzure -ne "null" -and $SelectedAzureRegion -ne "null" -and $SelectedAzureRegion -ne "none" ) {
+  if ( ($UidAzure -ne "null") -and ($SelectedAzureRegion -ne "null") -and ($SelectedAzureRegion -ne "none") ) {
     Write-Output "true"
   }
   else {
@@ -90,12 +90,28 @@ function Test-GcpEnabled() {
   $SelectedGcpRegion = Get-RegionGcp
   $UidGcp = Get-UidGcp
 
-  if ( $UidGcp -ne "null" -and $SelectedGcpRegion -ne "null" -and $SelectedGcpRegion -ne "none" ) {
+  if ( ($UidGcp -ne "null") -and ($SelectedGcpRegion -ne "null") -and ($SelectedGcpRegion -ne "none") ) {
     Write-Output "true"
   }
   else {
     Write-Output "false"
   }
+}
+
+function Test-ProviderEnabled() {
+  param (
+    [Parameter(Mandatory)]
+    [ValidateSet('aws','azure','gcp')]
+    [string] $Provider
+  )
+
+  switch ($Provider) {
+    "aws" {
+
+    }
+    Default {}
+  }
+  
 }
 
 function Select-Region() {
