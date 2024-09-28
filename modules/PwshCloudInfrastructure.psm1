@@ -107,7 +107,37 @@ function Test-ProviderEnabled() {
 
   switch ($Provider) {
     "aws" {
-
+      $SelectedAwsRegion = Get-RegionAws
+      $UidAws = Get-UidAws
+    
+      if ( ($UidAws -ne "null") -and ($SelectedAwsRegion -ne "null") -and ($SelectedAwsRegion -ne "none") ) {
+        Write-Output "true"
+      }
+      else {
+        Write-Output "false"
+      }
+    }
+    "azure" {
+      $SelectedAzureRegion = Get-RegionAzure
+      $UidAzure = Get-UidAzure
+    
+      if ( ($UidAzure -ne "null") -and ($SelectedAzureRegion -ne "null") -and ($SelectedAzureRegion -ne "none") ) {
+        Write-Output "true"
+      }
+      else {
+        Write-Output "false"
+      }
+    }
+    "gcp" {
+      $SelectedGcpRegion = Get-RegionGcp
+      $UidGcp = Get-UidGcp
+    
+      if ( ($UidGcp -ne "null") -and ($SelectedGcpRegion -ne "null") -and ($SelectedGcpRegion -ne "none") ) {
+        Write-Output "true"
+      }
+      else {
+        Write-Output "false"
+      }
     }
     Default {}
   }
